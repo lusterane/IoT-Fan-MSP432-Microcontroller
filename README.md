@@ -7,8 +7,8 @@ Fun lil embedded systems hobby project I started on. I'm repurposing an old four
 
 ## Pin Mapping
 Pin Mapping for MSP-EXP432P401R
-![Pin Mapping for microcontroller]([https://imgur.com/a/AAgY6TV](https://imgur.com/a/AAgY6TV))
+![Pin Mapping for microcontroller](https://i.imgur.com/Vkgt9mj.jpg)
 
 ## Project Media
 
-Real life images of the project
+Real life images and video of the project
