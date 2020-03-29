@@ -81,10 +81,12 @@ void loop() {
             // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
             // and a content-type so the client knows what's coming, then a blank line:
             client.println("HTTP/1.1 200 OK");
+
             client.println("Content-type:text/html");
             client.println();
 
             // the content of the HTTP response follows the header:
+            /*
             client.println("<html><head><title>Energia CC3100 WiFi Web Server</title></head><body align=center>");
             client.println("<h1 align=center><font color=\"red\">CC3100 WiFi Web Server</font></h1>");
             client.print("FAN SPEED <button onclick=\"location.href='/DECREASE_FAN'\">DECREASE</button>");
@@ -94,9 +96,12 @@ void loop() {
             client.print("/255 (");
             client.print(100.0*fanSpeed/255, 4);
             client.println("%)");
+            */
 
-            // The HTTP response ends with another blank line:
-            client.println();
+            client.print("<html lang=\"en\"> <head> <link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css\" integrity=\"sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T\" crossorigin=\"anonymous\"> <link rel=\"stylesheet\" href=\"style.css\"> <meta charset=\"UTF-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> <title>Toby's IoT Home</title> </head> <body class=\"center\"> <h1>Toby's IoT Home</h1> <div> <h3>FAN SPEED</h3> <button onclick=\"location.href='/DECREASE_FAN'\" class=\"btn btn-primary\">DECREASE</button> <button onclick=\"location.href='/INCREASE_FAN'\" class=\"btn btn-primary\">INCREASE</button> <div class=\"progress\"> <div class=\"progress-bar\" role=\"progressbar\" style=\"width: ");
+            client.print(100.0*fanSpeed/255, 4);
+            client.print("%\"");
+            client.print(" aria-valuenow=\"75\" aria-valuemin=\"0\" aria-valuemax=\"100\"></div> </div> </div> <script src=\"https://code.jquery.com/jquery-3.3.1.slim.min.js\" integrity=\"sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo\" crossorigin=\"anonymous\"></script> <script src=\"https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js\" integrity=\"sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1\" crossorigin=\"anonymous\"></script> <script src=\"https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js\" integrity=\"sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM\" crossorigin=\"anonymous\"></script> </body> </html>");
             // break out of the while loop:
             break;
           }

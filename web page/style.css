@@ -1,0 +1,13 @@
+.btn {
+    margin: 1em;
+}
+
+.progress {
+    width: 60%;
+    margin: 0 auto;
+}
+
+.center {
+    text-align: center;
+    vertical-align: middle;
+}
