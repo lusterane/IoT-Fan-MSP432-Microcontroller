@@ -1,5 +1,5 @@
 #  four-lead-fan-MSP432
-Hobby project working with MSP 432 microcontroller and four lead CPU fan
+IoT-Fan-MSP432-Microcontroller
 
 ## What Is This?
 
