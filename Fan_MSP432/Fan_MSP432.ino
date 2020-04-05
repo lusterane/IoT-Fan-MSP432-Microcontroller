@@ -5,6 +5,10 @@
 #include <WiFi.h>
 #include <Sensitive.h> // CUSTOM LINKING PATH. REMOVE IF YOU ARE NOT ME
 
+// constants
+const int pwm_out = P3_2; // pwm pin
+const int temp_in = A14; // read temp
+
 // your network name also called SSID
 char ssid[] = sSSID; // replace sSSID with ssid of network
 // your network password
@@ -15,19 +19,17 @@ int keyIndex = 0;
 // fan data
 int fanSpeed = 0;
 float perc_fs = 0.0; // fan speed percentage
-const int pwmPin = P3_2; // pwm pin
-const int tachPin = P6_1; // tach pin
+float temp = 0.0;
 
 WiFiServer server(80);
 
 void setup() {
   Serial.begin(115200);      // initialize serial communication
+
+  
   pinMode(BLUE_LED, OUTPUT);
   pinMode(RED_LED, OUTPUT);      // set the LED pin mode
-  pinMode(pwmPin, INPUT);  // set PWM pin mode
-
-  // initialize Fan Speed to 0% duty cycle
-  analogWrite(pwmPin, 0);
+  pinMode(pwm_out, OUTPUT);  // set PWM pin mode
 
   // attempt to connect to Wifi network:
   Serial.print("Attempting to connect to Network named: ");
@@ -54,21 +56,22 @@ void setup() {
   
   // you're connected now, so print out the status  
   printWifiStatus();
-
-
-  
   
   Serial.println("Starting webserver on port 80");
   server.begin();                           // start the web server on port 80
   Serial.println("Webserver started!");
+
+  // initialize Fan Speed to 0% duty cycle
+  analogWrite(pwm_out, 0);
 }
 
 void loop() {
+  readTemperature();
   int i = 0;
   WiFiClient client = server.available();   // listen for incoming clients
 
   if (client) {                             // if you get a client,
-    Serial.println("new client");           // print a message out the serial port
+    Serial.println("New client");           // print a message out the serial port
     char buffer[150] = {0};                 // make a buffer to hold incoming data
     while (client.connected()) {            // loop while the client's connected
       if (client.available()) {             // if there's bytes to read from the client,
@@ -139,7 +142,7 @@ void loop() {
           delay(15);
           digitalWrite(RED_LED, LOW);
         }
-        analogWrite(pwmPin, fanSpeed); // 0-255
+        analogWrite(pwm_out, fanSpeed); // 0-255
       }
     }
     // close the connection:
@@ -185,4 +188,24 @@ void printWifiStatus() {
   // print where to go in a browser:
   Serial.print("To see this page in action, open a browser to http://");
   Serial.println(ip);
+}
+
+void readTemperature(){
+  temp = analogRead(temp_in);
+
+  // converting that reading to voltage, for 3.3v arduino use 3.3
+   float voltage = temp * 5.0;
+   voltage /= 1024.0; 
+
+   // now print out the temperature
+   float temperatureC = (voltage - 0.5) * 100 ;  //converting from 10 mv per degree wit 500 mV offset
+                                                 //to degrees ((voltage - 500mV) times 100)
+                                                 /*
+   Serial.print(temperatureC); 
+   Serial.println(" degrees C");        
+   */                           
+   // now convert to Fahrenheit
+   float temperatureF = (temperatureC * 9.0)/ 5.0 + 32.0;
+   Serial.print(temperatureF);
+   Serial.println(" degrees F");
 }
