@@ -3,11 +3,15 @@
 
 // pin outs
 const int NTCPin = A11;
+const int pwmPin = P2_7;
+const int potPin = A3;
+
+volatile boolean USER_MODE = false;
 
 // LCD
 LCD_LAUNCHPAD myLCD;
 
-// temperature variables
+// TEMPERATURE VARIABLES
 // temperature will be averaged over 'TEMP_SIZE' * 'DELAY' seconds
 float Vo = 3.3;
 const float R1 = 20000;
@@ -17,7 +21,7 @@ float Resistance = 0.0;
 const float c1 = 2.124064633e-03, c2 = 0.7716788971e-04, c3 = 4.872126180e-07;
 const int SERIESRESISTOR = 20000;
 
-const int DELAY = 500; // milliseconds
+const int DELAY = 1000; // milliseconds
 // how many temperatures to average
 const int TEMP_SIZE = 1;
 float tempArr[TEMP_SIZE] = {};
@@ -26,22 +30,58 @@ float outputTemperature = 0;
 
 boolean firstIteration = true; // if program is at first iteration
 
+float userTemp = 80.0;
+
+// FAN VARIABLES
+int fanSpeed = 0;
+
 void setup() {
   Serial.begin(9600);
   myLCD.init();
-  pinMode(P1_1, INPUT_PULLUP);
+  analogReadResolution(10);
+
+  // PIN MODES
+  pinMode(PUSH1, INPUT_PULLUP);
+  pinMode(PUSH2, INPUT_PULLUP);
+  pinMode(potPin, INPUT_PULLUP);
+  
+  attachInterrupt(digitalPinToInterrupt(PUSH1), toggleUserInput, HIGH);
+  
+  pinMode(RED_LED, OUTPUT);
+  pinMode(GREEN_LED, OUTPUT);
 }
 
 void loop() {
+  displayTemperatureLCD();
+  updateFan();
+  if(!USER_MODE){
+    getTemperature();
+    Serial.println(analogRead(potPin));
+    delay(DELAY);
+  }
+  else{
+    checkUserInput();
+  }
+}
+
+void toggleUserInput(){
+  USER_MODE = !USER_MODE;
+  for(int i = 0; i < 10000; i++){
+    
+  }
+}
+
+void checkUserInput(){
+  // lower user temperature
+  userTemp = ((1023.0-analogRead(potPin))/1023.0);
+  userTemp = (int)((userTemp*35)+50);
   
-  findTemperature();
-  
-  // LCD message
-  Serial.println(String(outputTemperature, 2));
-  String message = (String(outputTemperature, 2) + "F").substring(2,8);
-  message.replace(".", "");
-  Serial.println(message);
-  myLCD.displayText(message, 0);
+  Serial.print("USERMODE_USERTEMP: ");
+  Serial.println(userTemp);
+}
+
+// userTemp: true if user is inputting temp
+void displayTemperatureLCD(){
   myLCD.showSymbol(LCD_SEG_DOT2, 1);
   
   myLCD.showSymbol(LCD_SEG_BAT_ENDS, 1); 
@@ -52,12 +92,37 @@ void loop() {
   myLCD.showSymbol(LCD_SEG_BAT4, 1); // bat 0-5
   myLCD.showSymbol(LCD_SEG_BAT5, 1); // bat 0-5
 
+  String message;
+  if(USER_MODE){
+    myLCD.showSymbol(LCD_SEG_MARK, 1);
+    message = (String(userTemp, 2) + "F").substring(2,8);
+    
+  }
+  else{
+    myLCD.showSymbol(LCD_SEG_MARK, 0);
+    message = (String(outputTemperature, 2) + "F").substring(2,8);
+  }
   
-  delay(DELAY);
+  message.replace(".", "");
+  myLCD.displayText(message, 0);
 }
 
-void findTemperature(){
-  analogReadResolution(10);
+void updateFan(){  
+  // fan speed [0,255]
+  if(outputTemperature > userTemp){
+    fanSpeed = 255;
+  }
+  else if(outputTemperature <= userTemp){
+    fanSpeed = 0;
+  }
+  Serial.print("updating fan: ");
+  Serial.println(fanSpeed);
+  
+  analogWrite(pwmPin, fanSpeed);
+}
+
+
+void getTemperature(){
   ADCvalue = analogRead(NTCPin);
 
   /*
@@ -65,8 +130,6 @@ void findTemperature(){
   Serial.println(ADCvalue);
   */
   
- 
-
   //convert value to resistance
   Resistance = (1023 / ADCvalue) - 1;
   Resistance = SERIESRESISTOR / Resistance;
@@ -82,10 +145,6 @@ void findTemperature(){
   
   T = T - 273.15;
   T = (T * 9.0)/ 5.0 + 32.0; 
-  
-  Serial.print("Temp = ");
-  Serial.print(T);   
-  Serial.println(" F");
 
   // if program is ran first iteration, then must immediately output first temperature result
   if(firstIteration){
